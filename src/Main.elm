@@ -92,10 +92,9 @@ view model =
                     [ placeholder "P1", value model.p1Name, onInput P1Change
                     ]
                     []
-              ,  button [ onClick (P1ScoreChange (\x -> x - 1)) ] [ text "-" ]
-              , text (String.fromInt model.p1Score)
+              , button [ onClick (P1ScoreChange (\x -> x - 1)) ] [ text "-" ]
+              , button [ onClick (P1ScoreChange (\_ -> 0)) ] [ text (String.fromInt model.p1Score) ]
               , button [ onClick (P1ScoreChange (\x -> x + 1)) ] [ text "+" ]
-              , button [ onClick (P1ScoreChange (\_ -> 0)) ] [ text "c" ]
               ]
         , div []
               [ input
@@ -103,8 +102,7 @@ view model =
                   ]
                   []
               , button [ onClick (P2ScoreChange (\x -> x - 1)) ] [ text "-" ]
-              , text (String.fromInt model.p2Score)
+              , button [ onClick (P2ScoreChange (\_ -> 0)) ] [ text (String.fromInt model.p2Score) ]
               , button [ onClick (P2ScoreChange (\x -> x + 1)) ] [ text "+" ]
-              , button [ onClick (P2ScoreChange (\_ -> 0)) ] [ text "c" ]
               ]
         ]
