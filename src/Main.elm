@@ -5,7 +5,6 @@ import Browser
 import Html exposing (Html, Attribute, button, div, input, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
-import File.Download as Download
 
 
 
@@ -43,13 +42,6 @@ init _ =
     )
 
 
-playerNames : Model -> String
-playerNames model =
-    model.p1Name ++ " vs " ++ model.p2Name
-
-playerScores : Model -> String
-playerScores model =
-    String.fromInt model.p1Score ++ " - " ++ String.fromInt model.p2Score
 
 
 
@@ -61,7 +53,6 @@ type Msg
   | P1ScoreChange (Int -> Int)
   | P2Change String
   | P2ScoreChange (Int -> Int)
-  | SavePlayers
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,7 +66,7 @@ update msg model =
             let newModel = { model | p1Score = f model.p1Score }
             in
                 ( newModel
-                , Download.string "score.txt" "text/plain" (playerScores newModel)
+                , Cmd.none
                 )
         P2Change name ->
             ( { model | p2Name = name }
@@ -85,12 +76,8 @@ update msg model =
             let newModel = { model | p2Score = f model.p2Score }
             in
                 ( newModel
-                , Download.string "score.txt" "text/plain" (playerScores newModel)
+                , Cmd.none
                 )
-        SavePlayers ->
-            ( model
-            , Download.string "players.txt" "text/plain" (playerNames model)
-            )
 
 
 
@@ -120,5 +107,4 @@ view model =
               , button [ onClick (P2ScoreChange (\x -> x + 1)) ] [ text "+" ]
               , button [ onClick (P2ScoreChange (\_ -> 0)) ] [ text "c" ]
               ]
-        , button [ onClick SavePlayers ] [ text "save players" ]
         ]
