@@ -3,6 +3,8 @@ module Main exposing (..)
 import Browser
 import Element exposing (..)
 import Element.Background as Background
+import Element.Border as Border
+import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
@@ -17,7 +19,6 @@ main = Browser.element
   , subscriptions = subscriptions
   }
 
-
 -- model
 
 type alias Model =
@@ -25,6 +26,8 @@ type alias Model =
   , p1Score : Int
   , p2Name : String
   , p2Score : Int
+  , mainDesc : String
+  , subDesc : String
   }
 
 init : () -> ( Model, Cmd Msg )
@@ -33,6 +36,8 @@ init _ =
       , p1Score = 0
       , p2Name = "P2"
       , p2Score = 0
+      , mainDesc = "Fight!"
+      , subDesc = ""
       }
     , Cmd.none
     )
@@ -44,6 +49,8 @@ type Msg
   | P1ScoreChange (Int -> Int)
   | P2Change String
   | P2ScoreChange (Int -> Int)
+  | MainDescChange String
+  | SubDescChange String
   | ClearEverything
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -70,6 +77,14 @@ update msg model =
                 ( newModel
                 , Cmd.none
                 )
+        MainDescChange str ->
+            ( { model | mainDesc = str }
+            , Cmd.none
+            )
+        SubDescChange str ->
+            ( { model | subDesc = str }
+            , Cmd.none
+            )
 
 -- subscriptions
 subscriptions : Model -> Sub Msg
@@ -82,25 +97,32 @@ view model =
     Element.layout [ Background.color black ] <|
     row [ centerX
         , centerY
+        , spacing 4
         ]
-        [ column []
+        [ playerElement P1Change model.p1Name
+        , column []
               [ btnElement "+" (P1ScoreChange (\x -> x+1)) grey
-              , btnElement (String.fromInt model.p1Score) (P1ScoreChange (\_ -> 0)) white
+              , scoreElement (String.fromInt model.p1Score) (P1ScoreChange (\_ -> 0))
               , btnElement "-" (P1ScoreChange (\x -> x-1)) grey
               ]
-        , inputElement P1Change model.p1Name
-        , btnElement "vs" ClearEverything white
-        , inputElement P2Change model.p2Name
+        -- wip
+        , column [centerX]
+              [ infoElement MainDescChange model.mainDesc
+              -- btnElement model.mainDesc ClearEverything white
+              -- infoElement SubDescChange model.subDesc
+              ]
         , column []
               [ btnElement "+" (P2ScoreChange (\x -> x+1)) grey
-              , btnElement (String.fromInt model.p2Score) (P2ScoreChange (\_ -> 0)) white
+              , scoreElement (String.fromInt model.p2Score) (P2ScoreChange (\_ -> 0))
               , btnElement "-" (P2ScoreChange (\x -> x-1)) grey
               ]
+        , playerElement P2Change model.p2Name
         ]
 
 black = rgb255 0 0 0
 white = rgb255 255 255 255
-grey = rgb255 50 50 50
+grey = rgb255 25 25 25
+red = rgb255 255 0 0
 
 btnElement str msg mainClr =
     Input.button [ Background.color black
@@ -122,7 +144,51 @@ btnElement str msg mainClr =
     , label = text str
     }
 
-inputElement msg modelField =
+scoreElement str msg =
+    Input.button [ Background.color white
+                 , Element.focused [ Background.color white
+                                   ]
+                 , Element.mouseOver [ Font.color red
+                                     ]
+                 , Font.color black
+                 , Font.semiBold
+                 , Font.family [ Font.external
+                                     { name = "Roboto"
+                                     , url = "https://fonts.googleapis.com/css?family=Roboto"
+                                     }
+                               , Font.monospace
+                               ]
+                 , Border.rounded 5
+                 , padding 10
+                 ]
+    { onPress = Just msg
+    , label = text str
+    }
+
+infoElement msg modelField =
+    Input.multiline [ Background.color black
+               , Element.focused [ Background.color black
+                                 ]
+               , Font.color white
+               , Font.extraBold
+               , Font.center
+               , Font.family [ Font.external
+                                   { name = "Roboto"
+                                   , url = "https://fonts.googleapis.com/css?family=Roboto"
+                                     }
+                             , Font.sansSerif
+                             ]
+               , Border.color black
+               , Events.onDoubleClick ClearEverything
+               ]
+    { onChange = msg
+    , text = modelField
+    , placeholder = Nothing
+    , label = Input.labelHidden ""
+    , spellcheck = False
+    }
+
+playerElement msg modelField =
     Input.text [ Background.color black
                , Element.focused [ Background.color black
                                  ]
@@ -135,6 +201,8 @@ inputElement msg modelField =
                                      }
                              , Font.sansSerif
                              ]
+               , Border.color white
+               , Border.rounded 3
                ]
     { onChange = msg
     , text = modelField
