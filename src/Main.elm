@@ -14,7 +14,7 @@ main = Browser.element
   { init = init
   , update = update
   , view = view
-  , subscriptions = \_ -> Sub.none
+  , subscriptions = subscriptions
   }
 
 
@@ -44,10 +44,12 @@ type Msg
   | P1ScoreChange (Int -> Int)
   | P2Change String
   | P2ScoreChange (Int -> Int)
+  | ClearEverything
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ClearEverything -> init ()
         P1Change name ->
             ( { model | p1Name = name }
             , Cmd.none
@@ -69,6 +71,10 @@ update msg model =
                 , Cmd.none
                 )
 
+-- subscriptions
+subscriptions : Model -> Sub Msg
+subscriptions _ = Sub.none
+
 -- view
 
 view : Model -> Html Msg
@@ -78,26 +84,38 @@ view model =
         , centerY
         ]
         [ column []
-              [ btnElement "+" (P1ScoreChange (\x -> x+1))
-              , btnElement (String.fromInt model.p1Score) (P1ScoreChange (\_ -> 0))
-              , btnElement "-" (P1ScoreChange (\x -> x-1))
+              [ btnElement "+" (P1ScoreChange (\x -> x+1)) grey
+              , btnElement (String.fromInt model.p1Score) (P1ScoreChange (\_ -> 0)) white
+              , btnElement "-" (P1ScoreChange (\x -> x-1)) grey
               ]
         , inputElement P1Change model.p1Name
-        , el [ centerX ] (textElement "vs")
+        , btnElement "vs" ClearEverything white
         , inputElement P2Change model.p2Name
         , column []
-              [ btnElement "+" (P2ScoreChange (\x -> x+1))
-              , btnElement (String.fromInt model.p2Score) (P2ScoreChange (\_ -> 0))
-              , btnElement "-" (P2ScoreChange (\x -> x-1))
+              [ btnElement "+" (P2ScoreChange (\x -> x+1)) grey
+              , btnElement (String.fromInt model.p2Score) (P2ScoreChange (\_ -> 0)) white
+              , btnElement "-" (P2ScoreChange (\x -> x-1)) grey
               ]
         ]
 
 black = rgb255 0 0 0
 white = rgb255 255 255 255
+grey = rgb255 50 50 50
 
-btnElement str msg =
+btnElement str msg mainClr =
     Input.button [ Background.color black
-                 , Font.color white
+                 , Element.focused [ Background.color black
+                                   ]
+                 , Element.mouseOver [ Font.color white
+                                     ]
+                 , Font.color mainClr
+                 , Font.semiBold
+                 , Font.family [ Font.external
+                                     { name = "Roboto"
+                                     , url = "https://fonts.googleapis.com/css?family=Roboto"
+                                     }
+                               , Font.monospace
+                               ]
                  , padding 10
                  ]
     { onPress = Just msg
@@ -106,17 +124,20 @@ btnElement str msg =
 
 inputElement msg modelField =
     Input.text [ Background.color black
+               , Element.focused [ Background.color black
+                                 ]
                , Font.color white
+               , Font.extraBold
+               , Font.center
+               , Font.family [ Font.external
+                                   { name = "Roboto"
+                                   , url = "https://fonts.googleapis.com/css?family=Roboto"
+                                     }
+                             , Font.sansSerif
+                             ]
                ]
     { onChange = msg
     , text = modelField
     , placeholder = Nothing
     , label = Input.labelHidden ""
     }
-
-textElement str =
-    el [ Background.color black
-       , Font.color white
-       , padding 10
-       ]
-    (text str)
