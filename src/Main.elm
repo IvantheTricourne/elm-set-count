@@ -1,4 +1,4 @@
-module UI exposing (..)
+module Main exposing (..)
 
 import Browser
 import Element exposing (..)
