@@ -1,15 +1,14 @@
-module Main exposing (..)
-
+module UI exposing (..)
 
 import Browser
-import Html exposing (Html, Attribute, button, div, input, text)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick)
+import Element exposing (..)
+import Element.Background as Background
+import Element.Font as Font
+import Element.Input as Input
+import Html exposing (Html)
 
 
-
--- MAIN
-
+-- main
 
 main = Browser.element
   { init = init
@@ -19,9 +18,7 @@ main = Browser.element
   }
 
 
-
--- MODEL
-
+-- model
 
 type alias Model =
   { p1Name : String
@@ -30,30 +27,23 @@ type alias Model =
   , p2Score : Int
   }
 
-
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { p1Name = ""
+    ( { p1Name = "P1"
       , p1Score = 0
-      , p2Name = ""
+      , p2Name = "P2"
       , p2Score = 0
       }
     , Cmd.none
     )
 
-
-
-
-
--- UPDATE
-
+-- update
 
 type Msg
   = P1Change String
   | P1ScoreChange (Int -> Int)
   | P2Change String
   | P2ScoreChange (Int -> Int)
-
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -79,30 +69,54 @@ update msg model =
                 , Cmd.none
                 )
 
-
-
--- VIEW
-
+-- view
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ div []
-              [ input
-                    [ placeholder "P1", value model.p1Name, onInput P1Change
-                    ]
-                    []
-              , button [ onClick (P1ScoreChange (\x -> x - 1)) ] [ text "-" ]
-              , button [ onClick (P1ScoreChange (\_ -> 0)) ] [ text (String.fromInt model.p1Score) ]
-              , button [ onClick (P1ScoreChange (\x -> x + 1)) ] [ text "+" ]
+    Element.layout [ Background.color black ] <|
+    row [ centerX
+        , centerY
+        ]
+        [ column []
+              [ btnElement "+" (P1ScoreChange (\x -> x+1))
+              , btnElement (String.fromInt model.p1Score) (P1ScoreChange (\_ -> 0))
+              , btnElement "-" (P1ScoreChange (\x -> x-1))
               ]
-        , div []
-              [ input
-                  [ placeholder "P2", value model.p2Name, onInput P2Change
-                  ]
-                  []
-              , button [ onClick (P2ScoreChange (\x -> x - 1)) ] [ text "-" ]
-              , button [ onClick (P2ScoreChange (\_ -> 0)) ] [ text (String.fromInt model.p2Score) ]
-              , button [ onClick (P2ScoreChange (\x -> x + 1)) ] [ text "+" ]
+        , inputElement P1Change model.p1Name
+        , el [ centerX ] (textElement "vs")
+        , inputElement P2Change model.p2Name
+        , column []
+              [ btnElement "+" (P2ScoreChange (\x -> x+1))
+              , btnElement (String.fromInt model.p2Score) (P2ScoreChange (\_ -> 0))
+              , btnElement "-" (P2ScoreChange (\x -> x-1))
               ]
         ]
+
+black = rgb255 0 0 0
+white = rgb255 255 255 255
+
+btnElement str msg =
+    Input.button [ Background.color black
+                 , Font.color white
+                 , padding 10
+                 ]
+    { onPress = Just msg
+    , label = text str
+    }
+
+inputElement msg modelField =
+    Input.text [ Background.color black
+               , Font.color white
+               ]
+    { onChange = msg
+    , text = modelField
+    , placeholder = Nothing
+    , label = Input.labelHidden ""
+    }
+
+textElement str =
+    el [ Background.color black
+       , Font.color white
+       , padding 10
+       ]
+    (text str)
