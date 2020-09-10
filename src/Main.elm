@@ -27,7 +27,6 @@ type alias Model =
   , p2Name : String
   , p2Score : Int
   , mainDesc : String
-  , subDesc : String
   }
 
 init : () -> ( Model, Cmd Msg )
@@ -37,7 +36,6 @@ init _ =
       , p2Name = "P2"
       , p2Score = 0
       , mainDesc = "Fight!"
-      , subDesc = ""
       }
     , Cmd.none
     )
@@ -50,7 +48,6 @@ type Msg
   | P2Change String
   | P2ScoreChange (Int -> Int)
   | MainDescChange String
-  | SubDescChange String
   | ClearEverything
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -81,10 +78,6 @@ update msg model =
             ( { model | mainDesc = str }
             , Cmd.none
             )
-        SubDescChange str ->
-            ( { model | subDesc = str }
-            , Cmd.none
-            )
 
 -- subscriptions
 subscriptions : Model -> Sub Msg
@@ -94,27 +87,26 @@ subscriptions _ = Sub.none
 
 view : Model -> Html Msg
 view model =
-    Element.layout [ Background.color black ] <|
+    Element.layout [ Background.color black
+                   ] <|
     row [ centerX
         , centerY
-        , spacing 4
+        , spacing 3
         ]
         [ playerElement P1Change model.p1Name
         , column []
-              [ btnElement "+" (P1ScoreChange (\x -> x+1)) grey
+              [ btnElement "+" (P1ScoreChange (\x -> x+1))
               , scoreElement (String.fromInt model.p1Score) (P1ScoreChange (\_ -> 0))
-              , btnElement "-" (P1ScoreChange (\x -> x-1)) grey
+              , btnElement "-" (P1ScoreChange (\x -> if x == 0 then 0 else x-1))
               ]
         -- wip
         , column [centerX]
               [ infoElement MainDescChange model.mainDesc
-              -- btnElement model.mainDesc ClearEverything white
-              -- infoElement SubDescChange model.subDesc
               ]
         , column []
-              [ btnElement "+" (P2ScoreChange (\x -> x+1)) grey
+              [ btnElement "+" (P2ScoreChange (\x -> x+1))
               , scoreElement (String.fromInt model.p2Score) (P2ScoreChange (\_ -> 0))
-              , btnElement "-" (P2ScoreChange (\x -> x-1)) grey
+              , btnElement "-" (P2ScoreChange (\x -> if x == 0 then 0 else x-1))
               ]
         , playerElement P2Change model.p2Name
         ]
@@ -124,13 +116,13 @@ white = rgb255 255 255 255
 grey = rgb255 25 25 25
 red = rgb255 255 0 0
 
-btnElement str msg mainClr =
+btnElement str msg =
     Input.button [ Background.color black
                  , Element.focused [ Background.color black
                                    ]
                  , Element.mouseOver [ Font.color white
                                      ]
-                 , Font.color mainClr
+                 , Font.color black
                  , Font.semiBold
                  , Font.family [ Font.external
                                      { name = "Roboto"
@@ -150,7 +142,7 @@ scoreElement str msg =
                                    ]
                  , Element.mouseOver [ Font.color red
                                      ]
-                 , Font.color black
+                 , Font.color grey
                  , Font.semiBold
                  , Font.family [ Font.external
                                      { name = "Roboto"
@@ -159,6 +151,7 @@ scoreElement str msg =
                                , Font.monospace
                                ]
                  , Border.rounded 5
+                 , Border.color black
                  , padding 10
                  ]
     { onPress = Just msg
@@ -166,21 +159,23 @@ scoreElement str msg =
     }
 
 infoElement msg modelField =
-    Input.multiline [ Background.color black
-               , Element.focused [ Background.color black
-                                 ]
-               , Font.color white
-               , Font.extraBold
-               , Font.center
-               , Font.family [ Font.external
+    Input.multiline [ Background.color white
+                    , Element.focused [ Background.color white
+                                      ]
+                    , Font.color grey
+                    , Font.extraBold
+                    , Font.center
+                    , Font.family [ Font.external
                                    { name = "Roboto"
                                    , url = "https://fonts.googleapis.com/css?family=Roboto"
-                                     }
-                             , Font.sansSerif
-                             ]
-               , Border.color black
-               , Events.onDoubleClick ClearEverything
-               ]
+                                   }
+                                  , Font.sansSerif
+                                  ]
+                    , Font.size 28
+                    , Border.rounded 5
+                    , Border.color black
+                    , Events.onDoubleClick ClearEverything
+                    ]
     { onChange = msg
     , text = modelField
     , placeholder = Nothing
@@ -189,8 +184,8 @@ infoElement msg modelField =
     }
 
 playerElement msg modelField =
-    Input.text [ Background.color black
-               , Element.focused [ Background.color black
+    Input.text [ Background.color grey
+               , Element.focused [ Background.color grey
                                  ]
                , Font.color white
                , Font.extraBold
@@ -201,8 +196,10 @@ playerElement msg modelField =
                                      }
                              , Font.sansSerif
                              ]
+               , Font.size 24
                , Border.color white
-               , Border.rounded 3
+               , Border.rounded 5
+               , Border.width 2
                ]
     { onChange = msg
     , text = modelField
