@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import Element exposing (..)
@@ -8,16 +8,8 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
-
-
--- main
-
-main = Browser.element
-  { init = init
-  , update = update
-  , view = view
-  , subscriptions = subscriptions
-  }
+import Json.Decode as D
+import Json.Encode as E
 
 -- model
 
@@ -28,17 +20,6 @@ type alias Model =
   , p2Score : Int
   , mainDesc : String
   }
-
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { p1Name = "P1"
-      , p1Score = 0
-      , p2Name = "P2"
-      , p2Score = 0
-      , mainDesc = "Fight!"
-      }
-    , Cmd.none
-    )
 
 -- update
 
@@ -53,7 +34,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ClearEverything -> init ()
+        ClearEverything -> init <| E.object []
         P1Change name ->
             ( { model | p1Name = name }
             , Cmd.none
@@ -206,3 +187,61 @@ playerElement msg modelField =
     , placeholder = Nothing
     , label = Input.labelHidden ""
     }
+
+-- local storage
+
+port setStorage : E.Value -> Cmd msg
+
+updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
+updateWithStorage msg oldModel =
+  let
+    ( newModel, cmds ) = update msg oldModel
+  in
+  ( newModel
+  , Cmd.batch [ setStorage (encode newModel), cmds ]
+  )
+
+-- JSON ENCODE/DECODE
+
+encode : Model -> E.Value
+encode model =
+  E.object
+    [ ("p1Name", E.string model.p1Name)
+    , ("p1Score", E.int model.p1Score)
+    , ("p2Name", E.string model.p2Name)
+    , ("p2Score", E.int model.p2Score)
+    , ("mainDesc", E.string model.mainDesc)
+    ]
+
+
+decoder : D.Decoder Model
+decoder =
+  D.map5 Model
+    (D.field "p1Name" D.string)
+    (D.field "p1Score" D.int)
+    (D.field "p2Name" D.string)
+    (D.field "p2Score" D.int)
+    (D.field "mainDesc" D.string)
+
+-- main
+
+init : E.Value -> ( Model, Cmd Msg )
+init flags =
+    ( case D.decodeValue decoder flags of
+          Ok model -> model
+          Err _ ->
+              { p1Name = "P1"
+              , p1Score = 0
+              , p2Name = "P2"
+              , p2Score = 0
+              , mainDesc = "Fight!"
+              }
+    , Cmd.none
+    )
+
+main = Browser.element
+  { init = init
+  , update = updateWithStorage
+  , view = view
+  , subscriptions = subscriptions
+  }
