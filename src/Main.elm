@@ -87,11 +87,12 @@ subscriptions _ = Sub.none
 
 view : Model -> Html Msg
 view model =
-    Element.layout [ Background.color black
-                   ] <|
-    row [ centerX
-        , centerY
-        , spacing 3
+    Element.layout [ Background.color black ] <|
+    row [ spacing 2
+        -- @NOTE: Removed so OBS window capture is agnostic to size
+        -- @TODO: Will probably re-add this whenever remote control is implemented
+        -- , centerX
+        -- , centerY
         ]
         [ playerElement P1Change model.p1Name
         , column []
@@ -99,8 +100,8 @@ view model =
               , scoreElement (String.fromInt model.p1Score) (P1ScoreChange (\_ -> 0))
               , btnElement "-" (P1ScoreChange (\x -> if x == 0 then 0 else x-1))
               ]
-        -- wip
-        , column [centerX]
+        -- @TODO: This text isn't exactly centered
+        , column [ centerX ]
               [ infoElement MainDescChange model.mainDesc
               ]
         , column []
@@ -110,6 +111,8 @@ view model =
               ]
         , playerElement P2Change model.p2Name
         ]
+
+-- elements
 
 black = rgb255 0 0 0
 white = rgb255 255 255 255
@@ -151,7 +154,8 @@ scoreElement str msg =
                                , Font.monospace
                                ]
                  , Border.rounded 5
-                 , Border.color black
+                 , Border.color grey
+                 , Border.width 2
                  , padding 10
                  ]
     { onPress = Just msg
@@ -162,6 +166,8 @@ infoElement msg modelField =
     Input.multiline [ Background.color white
                     , Element.focused [ Background.color white
                                       ]
+                    , Element.mouseOver [ Font.color red
+                                        ]
                     , Font.color grey
                     , Font.extraBold
                     , Font.center
@@ -173,7 +179,8 @@ infoElement msg modelField =
                                   ]
                     , Font.size 28
                     , Border.rounded 5
-                    , Border.color black
+                    , Border.color grey
+                    , Border.width 2
                     , Events.onDoubleClick ClearEverything
                     ]
     { onChange = msg
@@ -187,6 +194,8 @@ playerElement msg modelField =
     Input.text [ Background.color grey
                , Element.focused [ Background.color grey
                                  ]
+               , Element.mouseOver [ Font.color red
+                                   ]
                , Font.color white
                , Font.extraBold
                , Font.center
